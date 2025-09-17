@@ -16,20 +16,23 @@
         "electron": "electron .",
         "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
         "electron:pack": "electron-builder",
-        "electron:dist": "npm run build && electron-builder",
-        "dist": "npm run build && electron-builder --publish=never"
+        "electron:dist": "rm -rf ./release && npm run build && electron-builder"
     },
     "dependencies": {
         "axios": "^1.12.2",
         "docx-pdf": "^0.0.1",
         "docxtemplater": "^3.66.3",
+        "electron-log": "^5.4.3",
+        "electron-updater": "^6.6.2",
         "exceljs": "^4.4.0",
         "jspdf": "^3.0.2",
         "jspdf-autotable": "^5.0.2",
         "lucide-react": "^0.544.0",
         "pizzip": "^3.2.0",
+        "png-to-ico": "^3.0.1",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
+        "sharp": "^0.34.3",
         "systeminformation": "^5.27.9"
     },
     "devDependencies": {
@@ -58,11 +61,16 @@
         "wait-on": "^8.0.5"
     },
     "main": "dist-electron/main.js",
+    "repository": {
+        "url": "https://github.com/lanleworking/SCheker",
+        "type": "git"
+    },
     "build": {
-        "appId": "com.devicechecker.app",
+        "appId": "com.lanleworking.schecker",
         "productName": "SChecker",
         "directories": {
-            "output": "release"
+            "output": "release",
+            "buildResources": "build"
         },
         "files": [
             "dist/**/*",
@@ -78,16 +86,27 @@
                     ]
                 }
             ],
-            "icon": "public/icon.ico",
+            "icon": "build/icon.ico",
+            "requestedExecutionLevel": "asInvoker",
             "signAndEditExecutable": false,
-            "verifyUpdateCodeSignature": false
+            "verifyUpdateCodeSignature": false,
+            "artifactName": "${productName}-Setup-${version}.${ext}"
         },
         "nsis": {
             "oneClick": false,
-            "allowToChangeInstallationDirectory": true
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "installerIcon": "build/icon.ico",
+            "uninstallerIcon": "build/icon.ico",
+            "shortcutName": "SChecker"
         },
-        "beforeBuild": null,
-        "buildDependenciesFromSource": false,
-        "nodeGypRebuild": false
+        "publish": {
+            "provider": "github",
+            "owner": "lanleworking",
+            "repo": "SCheker",
+            "private": false,
+            "releaseType": "release"
+        }
     }
 }

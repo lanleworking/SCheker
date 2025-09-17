@@ -8,19 +8,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let mainWindow: BrowserWindow | null = null;
 
 /**
- * Get environment variables and paths
+ * Get application paths
  */
 function getPaths() {
-    const APP_ROOT = process.env.APP_ROOT || path.join(__dirname, '../..');
-    const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
+    const APP_ROOT = path.join(__dirname, '..');
     const RENDERER_DIST = path.join(APP_ROOT, 'dist');
-    const VITE_PUBLIC = process.env.VITE_PUBLIC || RENDERER_DIST;
+
+    // Check if running in development mode by checking if dist folder has index.html
+    const isDevelopment = !fs.existsSync(path.join(RENDERER_DIST, 'index.html'));
+    const VITE_DEV_SERVER_URL = isDevelopment ? 'http://localhost:3000' : null;
 
     return {
         APP_ROOT,
         VITE_DEV_SERVER_URL,
         RENDERER_DIST,
-        VITE_PUBLIC,
     };
 }
 
@@ -33,14 +34,22 @@ export function createMainWindow(): BrowserWindow {
     // Determine icon path
     let iconPath: string;
     try {
-        if (paths.VITE_PUBLIC && fs.existsSync(path.join(paths.VITE_PUBLIC, 'icon.ico'))) {
-            iconPath = path.join(paths.VITE_PUBLIC, 'icon.ico');
+        const publicIconPath = path.join(paths.APP_ROOT, 'public/icon.ico');
+        const buildIconPath = path.join(paths.APP_ROOT, 'build/icon.ico');
+
+        if (fs.existsSync(buildIconPath)) {
+            iconPath = buildIconPath;
+        } else if (fs.existsSync(publicIconPath)) {
+            iconPath = publicIconPath;
         } else {
             iconPath = path.join(__dirname, '../../public/icon.ico');
         }
     } catch (error) {
         iconPath = path.join(__dirname, '../../public/icon.ico');
     }
+
+    // Determine preload script path
+    const preloadPath = path.join(paths.APP_ROOT, 'dist-electron/preload.js');
 
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -49,12 +58,13 @@ export function createMainWindow(): BrowserWindow {
         minHeight: 600,
         icon: iconPath,
         webPreferences: {
-            preload: path.join(paths.APP_ROOT, 'dist-electron/preload.js'),
+            preload: preloadPath,
             nodeIntegration: false,
             contextIsolation: true,
         },
         frame: true,
         titleBarStyle: 'default',
+        autoHideMenuBar: true,
         show: false, // Don't show until ready
     });
 

@@ -1,19 +1,11 @@
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { createMainWindow, closeMainWindow, hasOpenWindows } from './utils/windowManager';
+import { createMainWindow, hasOpenWindows } from './utils/windowManager';
 import { registerAllIpcHandlers } from './utils/ipcHandlers';
+import { appUpdater } from './utils/autoUpdater';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Set up application root path
-process.env.APP_ROOT = path.join(__dirname, '..');
-
-// Set up public path for resources
-const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
-    ? path.join(process.env.APP_ROOT, 'public')
-    : path.join(process.env.APP_ROOT, 'dist');
 
 // Application event handlers
 app.on('window-all-closed', () => {
@@ -34,5 +26,18 @@ app.whenReady().then(() => {
     registerAllIpcHandlers();
 
     // Create the main window
-    createMainWindow();
+    const mainWindow = createMainWindow();
+
+    // Initialize auto-updater
+    if (mainWindow) {
+        appUpdater.setMainWindow(mainWindow);
+
+        // Check for updates on startup (after a delay to ensure app is fully loaded)
+        setTimeout(() => {
+            appUpdater.checkForUpdates();
+        }, 3000);
+
+        // Start periodic update checks (every 60 minutes)
+        appUpdater.startPeriodicUpdateCheck(60);
+    }
 });
