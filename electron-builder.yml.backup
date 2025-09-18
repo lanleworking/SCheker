@@ -1,0 +1,53 @@
+appId: com.lanleworking.schecker
+productName: SChecker
+copyright: Copyright © 2025 lanleworking
+
+directories:
+    output: release
+    buildResources: build
+
+# Keep minimal file list here ONLY if using this config explicitly. Prefer single source of truth in package.json.
+files:
+    - 'dist/**/*'
+    - 'dist-electron/**/*'
+    - 'package.json'
+    - '!**/*.map'
+
+win:
+    target:
+        - target: nsis
+            arch:
+                - x64
+    icon: build/icon.ico
+    publisherName: lanleworking
+
+nsis:
+    oneClick: false
+    perMachine: false
+    allowToChangeInstallationDirectory: true
+    createDesktopShortcut: true
+    createStartMenuShortcut: true
+
+mac:
+    target:
+        - target: dmg
+          arch:
+              - x64
+              - arm64
+    category: public.app-category.utilities
+    icon: build/icon.icns
+
+linux:
+    target:
+        - target: AppImage
+          arch:
+              - x64
+    category: Utility
+    icon: build/icon.png
+
+publish:
+    provider: github
+    owner: lanleworking
+    repo: SCheker
+    private: false
+    releaseType: release

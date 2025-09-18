@@ -1,5 +1,29 @@
 import type { SystemInfo } from './utils/systemInfo';
 
+export interface UpdateStatus {
+    event:
+        | 'update-available'
+        | 'update-not-available'
+        | 'update-downloaded'
+        | 'download-progress'
+        | 'update-error'
+        | 'download-cancelled';
+    data?: {
+        version?: string;
+        releaseName?: string;
+        releaseNotes?: string;
+        releaseDate?: string;
+        percent?: number;
+        error?: string;
+        bytesPerSecond?: number;
+        transferred?: number;
+        total?: number;
+        speed?: string;
+        downloadedSize?: string;
+        totalSize?: string;
+    };
+}
+
 export interface IElectronAPI {
     getSystemInfo: () => Promise<SystemInfo>;
     getCPUInfo: () => Promise<SystemInfo['cpu']>;
@@ -18,6 +42,17 @@ export interface IElectronAPI {
     // Export functionality
     selectSavePath: () => Promise<string | null>;
     exportData: (data: any, filename: string, fileType: string, savePath: string) => Promise<boolean>;
+    // Auto-updater functionality
+    getAppVersion: () => Promise<string>;
+    checkForUpdates: () => Promise<boolean>;
+    downloadUpdate: () => Promise<boolean>;
+    installUpdate: () => Promise<boolean>;
+    startPeriodicUpdates: (intervalMinutes?: number) => Promise<boolean>;
+    stopPeriodicUpdates: () => Promise<boolean>;
+    onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => void;
+    removeUpdateStatusListener: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => void;
+    // App control
+    quitApp: () => Promise<void>;
 }
 
 declare global {

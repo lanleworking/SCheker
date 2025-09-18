@@ -38,6 +38,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     selectSavePath: () => ipcRenderer.invoke('select-save-path'),
     exportData: (data: any, filename: string, fileType: string, savePath: string) =>
         ipcRenderer.invoke('export-data', data, filename, fileType, savePath),
+    // Auto-updater functionality
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    downloadUpdate: () => ipcRenderer.invoke('download-update'),
+    installUpdate: () => ipcRenderer.invoke('install-update'),
+    startPeriodicUpdates: (intervalMinutes?: number) => ipcRenderer.invoke('start-periodic-updates', intervalMinutes),
+    stopPeriodicUpdates: () => ipcRenderer.invoke('stop-periodic-updates'),
+    // Listen for update events
+    onUpdateStatus: (callback: (status: any) => void) => ipcRenderer.on('update-status', callback),
+    removeUpdateStatusListener: (callback: (status: any) => void) =>
+        ipcRenderer.removeListener('update-status', callback),
+    // App control
+    quitApp: () => ipcRenderer.invoke('quit-app'),
 });
 
 console.log('Preload script finished executing');

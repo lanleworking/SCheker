@@ -1,0 +1,4 @@
+provider: github
+owner: lanleworking
+repo: SCheker
+updaterCacheDirName: schecker-updater

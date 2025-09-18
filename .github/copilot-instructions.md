@@ -25,7 +25,6 @@ This is a complete Electron + Vite + React + TypeScript application for checking
 
 ### Key Features:
 
--   Real-time system monitoring with 5-second auto-refresh
 -   Modern glassmorphism UI with smooth animations
 -   Secure context isolation and preload script
 -   Comprehensive hardware information display

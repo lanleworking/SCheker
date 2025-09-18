@@ -11,6 +11,7 @@ import DisplayCard from './components/DisplayCard';
 import DetailedHardwareInfo from './components/DetailedHardwareInfo';
 import ExportModal from './components/ExportModal';
 import WelcomeScreen from './components/WelcomeScreen';
+import UpdateNotification from './components/UpdateNotification';
 
 function App() {
     const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -114,6 +115,9 @@ function App() {
 
     return (
         <div className="min-h-screen p-6">
+            {/* Update Notification */}
+            <UpdateNotification />
+
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

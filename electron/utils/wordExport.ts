@@ -9,7 +9,8 @@ import { formatBytes } from '../../src/utils/format';
  */
 export async function exportToWordWithDeviceInfo(data: any, filePath: string): Promise<boolean> {
     try {
-        const templatePath = path.join(process.env.VITE_PUBLIC || '', 'DeviceTemplate.docx');
+        // Use fixed path for template
+        const templatePath = path.join(__dirname, '../../public/DeviceTemplate.docx');
 
         // Check if template exists
         if (!fs.existsSync(templatePath)) {

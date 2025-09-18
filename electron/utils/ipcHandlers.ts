@@ -1,9 +1,10 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron';
+import { ipcMain, dialog, BrowserWindow, app } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { systemInfoCollector } from '../../src/utils/systemInfo';
 import { exportToJSON, exportToExcel, exportToPDF, exportToWordWithDeviceInfo } from './exportUtils';
+import { appUpdater } from './autoUpdater';
 
 /**
  * Register all IPC handlers for system information
@@ -198,9 +199,86 @@ export function registerExportHandlers(): void {
 }
 
 /**
+ * Register all IPC handlers for auto-updater functionality
+ */
+export function registerUpdateHandlers(): void {
+    // Get app version
+    ipcMain.handle('get-app-version', () => {
+        return app.getVersion();
+    });
+
+    // Check for updates
+    ipcMain.handle('check-for-updates', async () => {
+        try {
+            await appUpdater.checkForUpdates();
+            return true;
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            throw error;
+        }
+    });
+
+    // Download update
+    ipcMain.handle('download-update', async () => {
+        try {
+            await appUpdater.downloadUpdate();
+            return true;
+        } catch (error) {
+            console.error('Error downloading update:', error);
+            throw error;
+        }
+    });
+
+    // Install update
+    ipcMain.handle('install-update', async () => {
+        try {
+            appUpdater.quitAndInstall();
+            return true;
+        } catch (error) {
+            console.error('Error installing update:', error);
+            throw error;
+        }
+    });
+
+    // Start periodic update checks
+    ipcMain.handle('start-periodic-updates', async (event, intervalMinutes = 60) => {
+        try {
+            appUpdater.startPeriodicUpdateCheck(intervalMinutes);
+            return true;
+        } catch (error) {
+            console.error('Error starting periodic updates:', error);
+            throw error;
+        }
+    });
+
+    // Stop periodic update checks
+    ipcMain.handle('stop-periodic-updates', async () => {
+        try {
+            appUpdater.stopPeriodicUpdateCheck();
+            return true;
+        } catch (error) {
+            console.error('Error stopping periodic updates:', error);
+            throw error;
+        }
+    });
+}
+
+/**
+ * Register IPC handlers for app control
+ */
+export function registerAppControlHandlers(): void {
+    // Quit application
+    ipcMain.handle('quit-app', () => {
+        app.quit();
+    });
+}
+
+/**
  * Register all IPC handlers
  */
 export function registerAllIpcHandlers(): void {
     registerSystemInfoHandlers();
     registerExportHandlers();
+    registerUpdateHandlers();
+    registerAppControlHandlers();
 }
