@@ -23,7 +23,6 @@ export interface SystemInfo {
             l3?: number;
         };
         usage: number;
-        temperature?: number;
         flags: string;
         virtualization: boolean;
     };
@@ -227,13 +226,11 @@ export interface SystemInfo {
 export class SystemInfoCollector {
     async getCPUInfo(): Promise<SystemInfo['cpu']> {
         try {
-            const [cpu, cpuLoad, cpuTemp, cpuCurrentSpeed] = await Promise.all([
+            const [cpu, cpuLoad, cpuCurrentSpeed] = await Promise.all([
                 si.cpu(),
                 si.currentLoad(),
-                si.cpuTemperature().catch(() => ({ main: undefined })),
                 si.cpuCurrentSpeed(),
             ]);
-
             return {
                 manufacturer: cpu.manufacturer || 'Unknown',
                 brand: cpu.brand || 'Unknown',
@@ -245,7 +242,7 @@ export class SystemInfoCollector {
                 physicalCores: cpu.physicalCores || 0,
                 processors: cpu.processors || 1,
                 socket: cpu.socket || 'Unknown',
-                speed: cpuCurrentSpeed.avg || cpu.speed || 0,
+                speed: cpu.speed || cpuCurrentSpeed.avg || 0,
                 speedMin: cpu.speedMin || 0,
                 speedMax: cpu.speedMax || 0,
                 cache: {
@@ -255,7 +252,6 @@ export class SystemInfoCollector {
                     l3: cpu.cache?.l3 || undefined,
                 },
                 usage: Math.round(cpuLoad.currentLoad),
-                temperature: cpuTemp.main,
                 flags: cpu.flags || '',
                 virtualization: cpu.virtualization || false,
             };
