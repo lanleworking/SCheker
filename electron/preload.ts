@@ -49,6 +49,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateStatus: (callback: (status: any) => void) => ipcRenderer.on('update-status', callback),
     removeUpdateStatusListener: (callback: (status: any) => void) =>
         ipcRenderer.removeListener('update-status', callback),
+    cancelDownload: () => ipcRenderer.invoke('cancel-download'),
+    // Network connectivity
+    checkInternetConnection: () => ipcRenderer.invoke('check-internet-connection'),
+    checkNetworkAvailable: () => ipcRenderer.invoke('check-network-available'),
     // App control
     quitApp: () => ipcRenderer.invoke('quit-app'),
 });

@@ -1,29 +1,51 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { formatBytes } from '../../src/utils/format';
+import { resolveTemplatePath, validateTemplate } from './templateResolver';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Export data to Word document using template
  */
 export async function exportToWordWithDeviceInfo(data: any, filePath: string): Promise<boolean> {
     try {
-        // Use fixed path for template
-        const templatePath = path.join(__dirname, '../../public/DeviceTemplate.docx');
+        // Resolve template path
+        const templatePath = resolveTemplatePath();
 
-        // Check if template exists
-        if (!fs.existsSync(templatePath)) {
-            throw new Error('DeviceTemplate.docx not found in public folder');
+        // Validate template
+        if (!validateTemplate(templatePath)) {
+            throw new Error(`Template validation failed: ${templatePath}`);
         }
+
+        console.log(`Using template: ${templatePath}`);
 
         // Read the template
         const templateContent = fs.readFileSync(templatePath, 'binary');
-        const zip = new PizZip(templateContent);
-        const doc = new Docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
-        });
+
+        let zip;
+        try {
+            zip = new PizZip(templateContent);
+        } catch (error) {
+            throw new Error(
+                `Failed to read template file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
+
+        let doc;
+        try {
+            doc = new Docxtemplater(zip, {
+                paragraphLoop: true,
+                linebreaks: true,
+            });
+        } catch (error) {
+            throw new Error(
+                `Failed to initialize document template: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
 
         // Prepare device information for the template
         const deviceInfo = {
@@ -151,16 +173,33 @@ export async function exportToWordWithDeviceInfo(data: any, filePath: string): P
         };
 
         // Set the template data using the new API
-        doc.render(deviceInfo);
+        try {
+            doc.render(deviceInfo);
+        } catch (error) {
+            throw new Error(
+                `Failed to render document template: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
 
         // Get the rendered document
-        const output = doc.getZip().generate({
-            type: 'nodebuffer',
-            compression: 'DEFLATE',
-        });
+        let output;
+        try {
+            output = doc.getZip().generate({
+                type: 'nodebuffer',
+                compression: 'DEFLATE',
+            });
+        } catch (error) {
+            throw new Error(`Failed to generate document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
 
         // Save the document
-        await fs.promises.writeFile(filePath, output);
+        try {
+            await fs.promises.writeFile(filePath, output);
+        } catch (error) {
+            throw new Error(
+                `Failed to save document to ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
 
         return true;
     } catch (error) {

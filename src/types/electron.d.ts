@@ -51,6 +51,10 @@ export interface IElectronAPI {
     stopPeriodicUpdates: () => Promise<boolean>;
     onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => void;
     removeUpdateStatusListener: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => void;
+    cancelDownload: () => Promise<boolean>;
+    // Network connectivity
+    checkInternetConnection: () => Promise<boolean>;
+    checkNetworkAvailable: () => Promise<boolean>;
     // App control
     quitApp: () => Promise<void>;
 }

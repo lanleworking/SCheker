@@ -5,6 +5,7 @@ import os from 'node:os';
 import { systemInfoCollector } from '../../src/utils/systemInfo';
 import { exportToJSON, exportToExcel, exportToPDF, exportToWordWithDeviceInfo } from './exportUtils';
 import { appUpdater } from './autoUpdater';
+import { NetworkChecker } from './networkChecker';
 
 /**
  * Register all IPC handlers for system information
@@ -274,6 +275,33 @@ export function registerAppControlHandlers(): void {
 }
 
 /**
+ * Register IPC handlers for network connectivity
+ */
+export function registerNetworkHandlers(): void {
+    const networkChecker = NetworkChecker.getInstance();
+
+    // Check internet connection
+    ipcMain.handle('check-internet-connection', async () => {
+        try {
+            return await networkChecker.checkInternetConnection();
+        } catch (error) {
+            console.error('Error checking internet connection:', error);
+            return false;
+        }
+    });
+
+    // Check if network is available
+    ipcMain.handle('check-network-available', () => {
+        try {
+            return networkChecker.isNetworkAvailable();
+        } catch (error) {
+            console.error('Error checking network availability:', error);
+            return false;
+        }
+    });
+}
+
+/**
  * Register all IPC handlers
  */
 export function registerAllIpcHandlers(): void {
@@ -281,4 +309,5 @@ export function registerAllIpcHandlers(): void {
     registerExportHandlers();
     registerUpdateHandlers();
     registerAppControlHandlers();
+    registerNetworkHandlers();
 }

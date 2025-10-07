@@ -1,7 +1,7 @@
 {
     "name": "devicecheckerreact",
     "private": true,
-    "version": "1.0.2",
+    "version": "1.0.3",
     "type": "module",
     "author": {
         "name": "Snw",
@@ -75,6 +75,7 @@
         "files": [
             "dist/**/*",
             "dist-electron/**/*",
+            "public/**/*",
             "!node_modules/**/*"
         ],
         "win": {

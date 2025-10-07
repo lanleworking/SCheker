@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Monitor, RefreshCw, HardDrive, Download } from 'lucide-react';
 import type { SystemInfo } from './utils/systemInfo';
 import SystemOverview from './components/SystemOverview';
@@ -12,6 +12,7 @@ import DetailedHardwareInfo from './components/DetailedHardwareInfo';
 import ExportModal from './components/ExportModal';
 import WelcomeScreen from './components/WelcomeScreen';
 import UpdateNotification from './components/UpdateNotification';
+import { NoInternetConnection } from './components/NoInternetConnection';
 
 function App() {
     const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -22,6 +23,40 @@ function App() {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [hasStarted, setHasStarted] = useState(false); // New state for welcome screen
+    const [hasInternetConnection, setHasInternetConnection] = useState<boolean | null>(null); // null = checking
+    const [isCheckingConnection, setIsCheckingConnection] = useState(false);
+
+    // Check internet connection on component mount
+    useEffect(() => {
+        checkInternetConnection();
+    }, []);
+
+    const checkInternetConnection = async () => {
+        try {
+            setIsCheckingConnection(true);
+            if (window.electronAPI) {
+                const isConnected = await window.electronAPI.checkInternetConnection();
+                setHasInternetConnection(isConnected);
+            } else {
+                setHasInternetConnection(false);
+            }
+        } catch (error) {
+            console.error('Error checking internet connection:', error);
+            setHasInternetConnection(false);
+        } finally {
+            setIsCheckingConnection(false);
+        }
+    };
+
+    const handleTryAgain = async () => {
+        await checkInternetConnection();
+    };
+
+    const handleExit = () => {
+        if (window.electronAPI) {
+            window.electronAPI.quitApp();
+        }
+    };
 
     const handleStartDeviceScan = () => {
         setHasStarted(true);
@@ -71,9 +106,28 @@ function App() {
         }
     };
 
-    // Show welcome screen if user hasn't started yet
-    if (!hasStarted) {
+    // Show no internet connection screen if no connection
+    if (hasInternetConnection === false) {
+        return (
+            <NoInternetConnection onTryAgain={handleTryAgain} onExit={handleExit} isChecking={isCheckingConnection} />
+        );
+    }
+
+    // Show welcome screen if user hasn't started yet and connection is available
+    if (!hasStarted && hasInternetConnection === true) {
         return <WelcomeScreen onStart={handleStartDeviceScan} />;
+    }
+
+    // Show loading screen while checking connection initially
+    if (hasInternetConnection === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-xl text-gray-300">Checking internet connection...</p>
+                </div>
+            </div>
+        );
     }
 
     if (loading) {
